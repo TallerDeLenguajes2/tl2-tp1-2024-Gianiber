@@ -11,24 +11,31 @@ namespace Sistema
         private string nombre;
         private uint telefono;
         private List<Cadete>? listadoCadetes;
+        private List<Pedido>? listadoPedidos;
 
         public string Nombre { get => nombre; set => nombre = value; }
         public uint Telefono { get => telefono; set => telefono = value; }
         public List<Cadete>? ListadoCadetes { get => listadoCadetes; set => listadoCadetes = value; }
+        public List<Pedido>? ListadoPedidos { get => listadoPedidos; set => listadoPedidos = value; }
 
         public Cadeteria(string nombre, string telefono)
         {
             this.Nombre = nombre;
             this.Telefono = uint.Parse(telefono);
             ListadoCadetes = null;
+            ListadoPedidos = new List<Pedido>();
         }
         public void CargarCadetes(List<Cadete> ListaCad)
         {
-            ListadoCadetes = ListaCad;
+            listadoCadetes = ListaCad;
+        }
+        public void SumarPedido(Pedido p)
+        {
+            listadoPedidos.Add(p);
         }
         public bool AsignarPedido(Pedido pedido,int nro)
         {
-            foreach (Cadete cade in ListadoCadetes)
+            foreach (Cadete cade in listadoCadetes)
             {
                 if (cade.Id == nro)
                 {
@@ -36,7 +43,7 @@ namespace Sistema
                     {
                         pedido.CadeteEncargado = cade;
                         pedido.Estado = EstadoPedido.Pendiente;
-                        cade.SumarPedido(pedido);
+                        SumarPedido(pedido);
                         return true;
                     }
                 }
@@ -45,70 +52,51 @@ namespace Sistema
         }
         public void CambiarEstado(int nroP,int estado)
         {
-            foreach (Cadete cadet in ListadoCadetes)
+            foreach (Pedido pedidoX in listadoPedidos)
             {
-                foreach (Pedido pedidoX in cadet.ListadoPedidos)
+                if (pedidoX.Nro == nroP)
                 {
-                    if (pedidoX.Nro == nroP)
+                    switch (estado)
                     {
-                        switch (estado)
-                        {
-                            case 0:
-                                pedidoX.Estado = EstadoPedido.SinCadete;
-                                break;
-                            case 1:
-                                pedidoX.Estado = EstadoPedido.Pendiente;
-                                break;
-                            case 2:
-                                pedidoX.Estado = EstadoPedido.EnCamino;
-                                break;
-                            case 3:
-                                pedidoX.Estado = EstadoPedido.Completado;
-                                break;
-                            default:
-                                pedidoX.Estado = EstadoPedido.SinCadete;
-                                break;
-                        }
+                        case 0:
+                            pedidoX.Estado = EstadoPedido.SinCadete;
+                            break;
+                        case 1:
+                            pedidoX.Estado = EstadoPedido.Pendiente;
+                            break;
+                        case 2:
+                            pedidoX.Estado = EstadoPedido.EnCamino;
+                            break;
+                        case 3:
+                            pedidoX.Estado = EstadoPedido.Completado;
+                            break;
+                        default:
+                            pedidoX.Estado = EstadoPedido.SinCadete;
+                            break;
                     }
-                }   
+                }
             }
         }
         public void UpdPedido(int nroP, int idC)
         {
-            Pedido Aux = null;
-            foreach (Cadete cadeteX in ListadoCadetes)
+            foreach (Pedido pedidoX in listadoPedidos)
             {
-                foreach (Pedido pedidoX in cadeteX.ListadoPedidos)
+                if (nroP == pedidoX.Nro)
                 {
-                    if (nroP == pedidoX.Nro)
+                    foreach (Cadete cadeteX in listadoCadetes)
                     {
-                        Aux = pedidoX;
-                    }
-                }
-                cadeteX.ListadoPedidos.RemoveAll(p => p.Nro == nroP);
-            }
-            if (Aux != null)
-            {
-                foreach (Cadete cadeteX in ListadoCadetes)
-                {
-                    if (cadeteX.Id == idC)
-                    {
-                        cadeteX.SumarPedido(Aux);
+                        if (cadeteX.Id == idC)
+                        {
+                            pedidoX.CadeteEncargado = cadeteX;
+                        }
                     }
                 }
             }
         }
         public int JornalACobrar(int idC)
         {
-            foreach (Cadete cadeteX in listadoCadetes)
-            {
-                if (cadeteX.Id == idC)
-                {
-                    int pedidosEntregados = cadeteX.ListadoPedidos.FindAll(p => p.Estado == EstadoPedido.Completado).Count;
-                    return pedidosEntregados * 500;   
-                }
-            }
-            return 0;
+            int pedidosEntregados = listadoPedidos.FindAll(p => p.Estado == EstadoPedido.Completado && p.CadeteEncargado.Id == idC).Count;
+            return pedidosEntregados * 500;
         }
         public string Informe()
         {
@@ -117,7 +105,7 @@ namespace Sistema
             string p = "";
             foreach (Cadete cadeteX in listadoCadetes)
             {
-                int pedidosEntregados = cadeteX.ListadoPedidos.FindAll(p => p.Estado == EstadoPedido.Completado).Count;
+                int pedidosEntregados = listadoPedidos.FindAll(p => p.Estado == EstadoPedido.Completado && p.CadeteEncargado.Id == cadeteX.Id).Count;
                 total += JornalACobrar(cadeteX.Id);
                 j++;
                 p += $"El cadete {cadeteX.Nombre} hizo un total de {pedidosEntregados} ganando {JornalACobrar(cadeteX.Id)}\n";
@@ -126,9 +114,20 @@ namespace Sistema
             return p + $"El total ganado fue de: {total}\nEl promedio de envios exitosos fue de: {promedio}";
         }
     }
-    public class AccesoCSV
+    public class AccesoDatos
     {
-        public List<Cadeteria> LeerCadeteria(string nombreArchivo)
+        public static bool Existe(string nombreArchivo)
+        {
+            if (File.Exists(nombreArchivo))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public static List<Cadeteria> LeerCadeteria(string nombreArchivo)
         {
             List<Cadeteria> LineasCSV = new List<Cadeteria>();
             if (File.Exists(nombreArchivo))
@@ -147,7 +146,29 @@ namespace Sistema
                 return null;
             }
         }
-        public List<Cadete> LeerCadetes(string path)
+    }
+    public class AccesoCSV
+    {
+        public static List<Cadeteria> LeerCadeteria(string nombreArchivo)
+        {
+            List<Cadeteria> LineasCSV = new List<Cadeteria>();
+            if (File.Exists(nombreArchivo))
+            {
+                string[] cadeteria = File.ReadAllLines(nombreArchivo);
+                foreach (var line in cadeteria)
+                {
+                    string[] datos = line.Split(',');
+                    Cadeteria Nueva = new Cadeteria(datos[0],datos[1]);
+                    LineasCSV.Add(Nueva);
+                }
+                return LineasCSV;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        public static List<Cadete> LeerCadetes(string path)
         {
             List<Cadete> LineasCadetesCSV = new List<Cadete>();
             int i = 0;
@@ -168,7 +189,7 @@ namespace Sistema
                 return null;
             }
         }
-        public bool Existe(string nombreArchivo)
+        public static bool Existe(string nombreArchivo)
         {
             if (File.Exists(nombreArchivo))
             {
@@ -179,9 +200,6 @@ namespace Sistema
                 return false;
             }
         }
-
-        /*public AltaPedidos
-        */
 
         /*public Cadeteria(string nombreArchivo)
         {

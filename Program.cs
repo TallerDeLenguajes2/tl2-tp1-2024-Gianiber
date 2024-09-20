@@ -7,10 +7,10 @@ string miscadetes = "cadetes.csv";
 AccesoCSV Archivados = new AccesoCSV();
 Cadeteria MiCadeteria = null;
 
-if (Archivados.Existe(micad) && Archivados.Existe(miscadetes))
+if (AccesoCSV.Existe(micad) && AccesoCSV.Existe(miscadetes))
 {
-    MiCadeteria = Archivados.LeerCadeteria(micad)[0];
-    MiCadeteria.CargarCadetes(Archivados.LeerCadetes(miscadetes));
+    MiCadeteria = AccesoCSV.LeerCadeteria(micad)[0];
+    MiCadeteria.CargarCadetes(AccesoCSV.LeerCadetes(miscadetes));
 }
 //CARGA PERSONAL
 Random random = new Random();

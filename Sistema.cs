@@ -10,39 +10,46 @@ namespace Sistema
     {
         private string nombre;
         private uint telefono;
-        private List<Cadete> listadoCadetes;
+        private List<Cadete>? listadoCadetes;
+
+        public string Nombre { get => nombre; set => nombre = value; }
+        public uint Telefono { get => telefono; set => telefono = value; }
+        public List<Cadete>? ListadoCadetes { get => listadoCadetes; set => listadoCadetes = value; }
+
         public Cadeteria(string nombre, string telefono)
         {
-            this.nombre = nombre;
-            this.telefono = uint.Parse(telefono);
-            listadoCadetes = null;
-        }
-        public string Mostrar()
-        {
-            return $"Nombre: {nombre}, teléfono: {telefono}";
+            this.Nombre = nombre;
+            this.Telefono = uint.Parse(telefono);
+            ListadoCadetes = null;
         }
         public void CargarCadetes(List<Cadete> ListaCad)
         {
-            listadoCadetes = ListaCad;
+            ListadoCadetes = ListaCad;
         }
-        public void agregarPedido(Pedido pedido,int nro)
+        public bool AsignarPedido(Pedido pedido,int nro)
         {
-            foreach (Cadete cade in listadoCadetes)
+            foreach (Cadete cade in ListadoCadetes)
             {
                 if (cade.Id == nro)
                 {
-                    pedido.IdEncargado = nro;
-                    cade.ListadoPedidos.Add(pedido);
+                    if (pedido.CadeteEncargado == null)
+                    {
+                        pedido.CadeteEncargado = cade;
+                        pedido.Estado = EstadoPedido.Pendiente;
+                        cade.SumarPedido(pedido);
+                        return true;
+                    }
                 }
             }
+            return false;
         }
-        public void cambiarEstado(int nro,int estado)
+        public void CambiarEstado(int nroP,int estado)
         {
-            foreach (Cadete cadet in listadoCadetes)
+            foreach (Cadete cadet in ListadoCadetes)
             {
                 foreach (Pedido pedidoX in cadet.ListadoPedidos)
                 {
-                    if (pedidoX.Nro == nro)
+                    if (pedidoX.Nro == nroP)
                     {
                         switch (estado)
                         {
@@ -66,21 +73,57 @@ namespace Sistema
                 }   
             }
         }
-        public void UpdPedido(int nro, int id)
+        public void UpdPedido(int nroP, int idC)
         {
-            foreach (Cadete cadeteX in listadoCadetes)
+            Pedido Aux = null;
+            foreach (Cadete cadeteX in ListadoCadetes)
             {
-                if (cadeteX.Id == id)
+                foreach (Pedido pedidoX in cadeteX.ListadoPedidos)
                 {
-                    foreach (Pedido pedidoX in cadeteX.ListadoPedidos)
+                    if (nroP == pedidoX.Nro)
                     {
-                        if (pedidoX.Nro == nro)
-                        {
-                            pedidoX.IdEncargado = id;
-                        }
+                        Aux = pedidoX;
+                    }
+                }
+                cadeteX.ListadoPedidos.RemoveAll(p => p.Nro == nroP);
+            }
+            if (Aux != null)
+            {
+                foreach (Cadete cadeteX in ListadoCadetes)
+                {
+                    if (cadeteX.Id == idC)
+                    {
+                        cadeteX.SumarPedido(Aux);
                     }
                 }
             }
+        }
+        public int JornalACobrar(int idC)
+        {
+            foreach (Cadete cadeteX in listadoCadetes)
+            {
+                if (cadeteX.Id == idC)
+                {
+                    int pedidosEntregados = cadeteX.ListadoPedidos.FindAll(p => p.Estado == EstadoPedido.Completado).Count;
+                    return pedidosEntregados * 500;   
+                }
+            }
+            return 0;
+        }
+        public string Informe()
+        {
+            int total = 0;
+            int j = 0;
+            string p = "";
+            foreach (Cadete cadeteX in listadoCadetes)
+            {
+                int pedidosEntregados = cadeteX.ListadoPedidos.FindAll(p => p.Estado == EstadoPedido.Completado).Count;
+                total += JornalACobrar(cadeteX.Id);
+                j++;
+                p += $"El cadete {cadeteX.Nombre} hizo un total de {pedidosEntregados} ganando {JornalACobrar(cadeteX.Id)}\n";
+            }
+            float promedio = total / (500*j);
+            return p + $"El total ganado fue de: {total}\nEl promedio de envios exitosos fue de: {promedio}";
         }
     }
     public class AccesoCSV

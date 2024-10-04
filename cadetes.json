@@ -1,0 +1,20 @@
+[
+    {
+        "Id": 0,
+        "Nombre": "Luis",
+        "Direccion": "Perú 1338",
+        "Telefono": 3816047999
+    },
+    {
+        "Id": 1,
+        "Nombre": "Marcos",
+        "Direccion": "Paraguay 2020",
+        "Telefono": 3815234098
+    },
+    {
+        "Id": 2,
+        "Nombre": "Sergio",
+        "Direccion": "Marcos Paz 730",
+        "Telefono": 3816246357
+    }
+]

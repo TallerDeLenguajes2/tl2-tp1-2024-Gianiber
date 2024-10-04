@@ -9,21 +9,29 @@ namespace Sistema
     public class Cadeteria
     {
         private string nombre;
-        private uint telefono;
+        private long telefono;
         private List<Cadete>? listadoCadetes;
         private List<Pedido>? listadoPedidos;
 
         public string Nombre { get => nombre; set => nombre = value; }
-        public uint Telefono { get => telefono; set => telefono = value; }
+        public long Telefono { get => telefono; set => telefono = value; }
         public List<Cadete>? ListadoCadetes { get => listadoCadetes; set => listadoCadetes = value; }
         public List<Pedido>? ListadoPedidos { get => listadoPedidos; set => listadoPedidos = value; }
 
-        public Cadeteria(string nombre, string telefono)
+        public Cadeteria(string nombre, long telefono,List<Cadete> listadoCadetes,List<Pedido> listadoPedidos)
         {
             this.Nombre = nombre;
-            this.Telefono = uint.Parse(telefono);
+            this.Telefono = telefono;
             ListadoCadetes = null;
             ListadoPedidos = new List<Pedido>();
+        }
+        public string MostrarInformacion(){
+            string p = $"Cadeteria {Nombre}\n";
+            foreach (Cadete cadeteX in listadoCadetes)
+            {
+                p += $"ID: {cadeteX.Id}, Nombre: {cadeteX.Nombre}, teléfono: {cadeteX.Telefono}, dirección: {cadeteX.Direccion}\n";
+            }
+            return p;
         }
         public void CargarCadetes(List<Cadete> ListaCad)
         {
@@ -93,14 +101,14 @@ namespace Sistema
                 }
             }
         }
-        public int JornalACobrar(int idC)
+        public float JornalACobrar(int idC)
         {
             int pedidosEntregados = listadoPedidos.FindAll(p => p.Estado == EstadoPedido.Completado && p.CadeteEncargado.Id == idC).Count;
             return pedidosEntregados * 500;
         }
         public string Informe()
         {
-            int total = 0;
+            float total = 0;
             int j = 0;
             string p = "";
             foreach (Cadete cadeteX in listadoCadetes)
@@ -113,120 +121,5 @@ namespace Sistema
             float promedio = total / (500*j);
             return p + $"El total ganado fue de: {total}\nEl promedio de envios exitosos fue de: {promedio}";
         }
-    }
-    public class AccesoDatos
-    {
-        public static bool Existe(string nombreArchivo)
-        {
-            if (File.Exists(nombreArchivo))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        public static List<Cadeteria> LeerCadeteria(string nombreArchivo)
-        {
-            List<Cadeteria> LineasCSV = new List<Cadeteria>();
-            if (File.Exists(nombreArchivo))
-            {
-                string[] cadeteria = File.ReadAllLines(nombreArchivo);
-                foreach (var line in cadeteria)
-                {
-                    string[] datos = line.Split(',');
-                    Cadeteria Nueva = new Cadeteria(datos[0],datos[1]);
-                    LineasCSV.Add(Nueva);
-                }
-                return LineasCSV;
-            }
-            else
-            {
-                return null;
-            }
-        }
-    }
-    public class AccesoCSV
-    {
-        public static List<Cadeteria> LeerCadeteria(string nombreArchivo)
-        {
-            List<Cadeteria> LineasCSV = new List<Cadeteria>();
-            if (File.Exists(nombreArchivo))
-            {
-                string[] cadeteria = File.ReadAllLines(nombreArchivo);
-                foreach (var line in cadeteria)
-                {
-                    string[] datos = line.Split(',');
-                    Cadeteria Nueva = new Cadeteria(datos[0],datos[1]);
-                    LineasCSV.Add(Nueva);
-                }
-                return LineasCSV;
-            }
-            else
-            {
-                return null;
-            }
-        }
-        public static List<Cadete> LeerCadetes(string path)
-        {
-            List<Cadete> LineasCadetesCSV = new List<Cadete>();
-            int i = 0;
-            if (File.Exists(path))
-            {
-                string[] cadetes = File.ReadAllLines(path);
-                foreach (var line in cadetes)
-                {
-                    string[] datos = line.Split(',');
-                    Cadete Nuevo = new Cadete(i,datos[0],datos[1],datos[2]);
-                    i++;
-                    LineasCadetesCSV.Add(Nuevo);
-                }
-                return LineasCadetesCSV;
-            }
-            else
-            {
-                return null;
-            }
-        }
-        public static bool Existe(string nombreArchivo)
-        {
-            if (File.Exists(nombreArchivo))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        /*public Cadeteria(string nombreArchivo)
-        {
-            if (File.Exists(nombreArchivo))
-            {
-                string prod = File.ReadAllText(nombreArchivo);
-                List<Cadete>? CadeteTexto = JsonSerializer.Deserialize<List<Cadete>>(prod);
-                return CadeteTexto;
-            }
-            else
-            {
-                return null;
-            }
-        }*/
-
-        /*public List<Cadete>? AltaCadete(string nombreArchivo)
-        {
-            if (File.Exists(nombreArchivo))
-            {
-                string prod = File.ReadAllText(nombreArchivo);
-                List<Cadete>? CadeteTexto = JsonSerializer.Deserialize<List<Cadete>>(prod);
-                return CadeteTexto;
-            }
-            else
-            {
-                return null;
-            }
-        }*/
     }
 }

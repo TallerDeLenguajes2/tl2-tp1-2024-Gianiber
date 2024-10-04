@@ -2,16 +2,41 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-string micad = "cadeteria.csv";
-string miscadetes = "cadetes.csv";
-AccesoCSV Archivados = new AccesoCSV();
-Cadeteria MiCadeteria = null;
 
-if (AccesoCSV.Existe(micad) && AccesoCSV.Existe(miscadetes))
+string micad = "cadeteria";
+string miscadetes = "cadetes";
+Cadeteria MiCadeteria = null;
+//Eleccion de acceso a datos
+Console.WriteLine("Que tipo de archivos desea utilizar (J:Json/C:Csv)");
+string acceso = Console.ReadLine();
+switch (acceso)
 {
-    MiCadeteria = AccesoCSV.LeerCadeteria(micad)[0];
-    MiCadeteria.CargarCadetes(AccesoCSV.LeerCadetes(miscadetes));
+    case "C":
+        micad += ".csv";
+        miscadetes += ".csv";
+        AccesoDatos Archivados = new AccesoCSV();
+        if (AccesoCSV.Existe(micad) && AccesoCSV.Existe(miscadetes))
+        {
+            MiCadeteria = Archivados.LeerCadeteria(micad)[0];
+            MiCadeteria.CargarCadetes(Archivados.LeerCadetes(miscadetes));
+        };
+        break;
+    case "J":
+        micad += ".json";
+        miscadetes += ".json";
+        AccesoDatos Archivos = new AccesoJson();
+        if (AccesoJson.Existe(micad) && AccesoJson.Existe(miscadetes))
+        {
+            MiCadeteria = Archivos.LeerCadeteria(micad)[0];
+            MiCadeteria.CargarCadetes(Archivos.LeerCadetes(miscadetes));
+        }
+        break;
+    default:
+        Console.WriteLine("No se definio el tipo de acceso.");
+        break;
 }
+//Mostrar informacion
+Console.WriteLine(MiCadeteria.MostrarInformacion());
 //CARGA PERSONAL
 Random random = new Random();
 Cliente Carlos = new Cliente("Carlos","Peru 120","3815900800","Porton negro");
